@@ -1,0 +1,39 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "RFID API",
+    "version": "1.0"
+  },
+  "paths": {
+    "/login": {
+      "post": {
+        "summary": "User login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "JWT token"
+          }
+        }
+      }
+    },
+    "/api/rfid": {
+      "post": {
+        "summary": "Send RFID data",
+        "parameters": [],
+        "security": [{ "Bearer": [] }],
+        "responses": {
+          "200": {
+            "description": "Data received"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}
