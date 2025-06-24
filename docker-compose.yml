@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  api:
+    build: .
+    container_name: rfid_api_server
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=rfiduser
+      - DB_PASSWORD=rfidpass
+      - DB_NAME=rfid_db
+      - JWT_SECRET=supersecretkey
+    depends_on:
+      - db
+    volumes:
+      - ./static:/app/static
+      - ./users.db:/app/users.db
+
+  db:
+    image: mysql:8.0
+    container_name: rfid_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: rfid_db
+      MYSQL_USER: rfiduser
+      MYSQL_PASSWORD: rfidpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  dbdata:
