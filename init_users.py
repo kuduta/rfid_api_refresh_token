@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
 )
 ''')
 
-cursor.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)", ("rpi-001", "secret123"))
+cursor.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)", ("rpitest", "secret123"))
 conn.commit()
 conn.close()
 print("✅ Created users.db and added user.")

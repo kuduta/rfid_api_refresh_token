@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS rfid_log (
     epc VARCHAR(64),
     rssi INT,
     ipaddress VARCHAR(45),
-    macaddress VARCHAR(32),
+    client VARCHAR(32),
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
