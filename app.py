@@ -61,14 +61,14 @@ def rfid():
     epc = data.get("epc")
     rssi = data.get("rssi")
     ip = data.get("ipaddress")
-    mac = data.get("client")
+    client = data.get("client")
 
     try:
         conn = get_mysql_conn()
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO rfid_log (epc, rssi, ipaddress, client) VALUES (%s, %s, %s, %s)",
-            (epc, rssi, ip, mac)
+            (epc, rssi, ip, client)
         )
         conn.commit()
         cursor.close()
