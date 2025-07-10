@@ -4,9 +4,9 @@ USE rfid_db;
 
 CREATE TABLE IF NOT EXISTS rfid_log (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    epc VARCHAR(64),
+    epc VARCHAR(64) NOT NULL,
     rssi INT,
     ipaddress VARCHAR(45),
-    client VARCHAR(32),
+    client VARCHAR(64),
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
