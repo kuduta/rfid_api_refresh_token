@@ -3,7 +3,7 @@
   "info": {
     "title": "RFID API",
     "version": "1.0.0",
-    "description": "API for RFID system with JWT authentication."
+    "description": "API for RFID system with JWT authentication and real-time dashboard."
   },
   "servers": [
     {
@@ -14,7 +14,7 @@
     "/login": {
       "post": {
         "summary": "Login",
-        "description": "Login with username and password.",
+        "description": "Login with username and password to receive JWT tokens.",
         "requestBody": {
           "required": true,
           "content": {
@@ -57,8 +57,8 @@
     },
     "/refresh": {
       "post": {
-        "summary": "Refresh Token",
-        "description": "Get new access token using refresh token.",
+        "summary": "Refresh JWT Token",
+        "description": "Refresh access token using a valid refresh token.",
         "security": [
           {
             "bearerAuth": []
@@ -66,7 +66,7 @@
         ],
         "responses": {
           "200": {
-            "description": "New access token",
+            "description": "New access token issued",
             "content": {
               "application/json": {
                 "schema": {
@@ -77,6 +77,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token"
           }
         }
       }
@@ -84,6 +87,7 @@
     "/api/rfid": {
       "post": {
         "summary": "Submit RFID Data",
+        "description": "Post new RFID data to the server.",
         "security": [
           {
             "bearerAuth": []
@@ -108,7 +112,7 @@
         },
         "responses": {
           "200": {
-            "description": "Data received",
+            "description": "Data successfully stored",
             "content": {
               "application/json": {
                 "schema": {
@@ -119,13 +123,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
           }
         }
       }
     },
     "/api/rfid-logs": {
       "get": {
-        "summary": "Get RFID Logs",
+        "summary": "Get all RFID logs",
+        "description": "Returns list of RFID log records from MySQL.",
         "security": [
           {
             "bearerAuth": []
@@ -152,6 +163,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }

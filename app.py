@@ -4,6 +4,8 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity
 )
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
+from flask import render_template
 from flask import send_file
 import mysql.connector
 import sqlite3
@@ -11,6 +13,7 @@ import os
 from datetime import timedelta
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET", "secret")
@@ -89,13 +92,30 @@ def rfid():
         conn.commit()
         cursor.close()
         conn.close()
+        socketio.emit("new_rfid", {
+            "epc": epc,
+            "rssi": rssi,
+            "ipaddress": ip,
+            "client": client
+        })
         return jsonify({"msg": "Data received"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/login_page.html")
+def login_page():
+    return render_template("login_page.html")
+
     
 @app.route("/swagger.json")
 def swagger_spec():
     return send_file("swagger.json", mimetype="application/json")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    #app.run(host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
