@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity
 )
 from flask_cors import CORS
+from flask import send_file
 import mysql.connector
 import sqlite3
 import os
@@ -57,6 +58,18 @@ def refresh():
     access_token = create_access_token(identity=identity)
     return jsonify(access_token=access_token)
 
+@app.route("/api/rfid-logs", methods=["GET"])
+@jwt_required()
+def rfid_logs():
+    conn = get_mysql_conn()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM rfid_log ORDER BY timestamp DESC")
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(rows)
+
+
 @app.route("/api/rfid", methods=["POST"])
 @jwt_required()
 def rfid():
@@ -79,6 +92,10 @@ def rfid():
         return jsonify({"msg": "Data received"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/swagger.json")
+def swagger_spec():
+    return send_file("swagger.json", mimetype="application/json")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

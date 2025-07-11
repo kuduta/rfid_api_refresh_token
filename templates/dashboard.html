@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RFID Dashboard (Protected)</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+  <h2 style="margin:20px;">RFID Dashboard (Protected)</h2>
+
+  <button id="logout" style="margin:20px;">Logout</button>
+
+  <table id="rfidTable" class="display" style="width:90%; margin:20px;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>EPC</th>
+        <th>RSSI</th>
+        <th>IP Address</th>
+        <th>Client</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    // อ่าน token จาก Local Storage
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      alert("You must login first!");
+      window.location.href = "/login_page.html";
+    }
+
+    $(document).ready(function() {
+      const table = $('#rfidTable').DataTable();
+
+      // Load all data from API
+      $.ajax({
+        url: "/api/rfid-logs",
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        success: function(data) {
+          data.forEach(item => {
+            table.row.add([
+              item.id,
+              item.epc,
+              item.rssi,
+              item.ipaddress,
+              item.client,
+              item.timestamp
+            ]).draw(false);
+          });
+        },
+        error: function(err) {
+          alert("Unauthorized. Please login.");
+          window.location.href = "/login_page.html";
+        }
+      });
+
+      // Listen for real-time event via socket.io
+      const socket = io({
+        extraHeaders: {
+          Authorization: "Bearer " + token
+        }
+      });
+
+      socket.on("new_rfid", function(data) {
+        table.row.add([
+          "-",
+          data.epc,
+          data.rssi,
+          data.ipaddress,
+          data.client,
+          new Date().toLocaleString()
+        ]).draw(false);
+      });
+
+      $("#logout").click(function(){
+        localStorage.removeItem("access_token");
+        window.location.href = "/login_page.html";
+      });
+    });
+  </script>
+</body>
+</html>

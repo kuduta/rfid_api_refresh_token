@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login RFID Dashboard</title>
+</head>
+<body>
+  <h2 style="margin:20px;">Login</h2>
+  <input type="text" id="username" placeholder="Username"><br>
+  <input type="password" id="password" placeholder="Password"><br>
+  <button id="loginBtn">Login</button>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script>
+    $("#loginBtn").click(function(){
+      const username = $("#username").val();
+      const password = $("#password").val();
+
+      $.ajax({
+        url: "/login",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({
+          username: username,
+          password: password
+        }),
+        success: function(result) {
+          localStorage.setItem("access_token", result.access_token);
+          window.location.href = "/dashboard";
+        },
+        error: function(err) {
+          alert("Login failed");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
