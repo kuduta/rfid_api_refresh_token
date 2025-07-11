@@ -1,4 +1,7 @@
-flask
-flask-jwt-extended
-flask-cors
-mysql-connector-python
+flask==2.3.0
+flask-cors==3.0.10
+flask-jwt-extended==4.5.2
+flask-socketio==5.3.6
+eventlet
+mysql-connector-python==8.0.33
+python-dotenv==1.0.1
