@@ -29,6 +29,10 @@ def get_sqlite_conn():
 
 def get_mysql_conn():
     return mysql.connector.connect(
+        # host=os.environ.get("DB_HOST", "mysql"),
+        # user=os.environ.get("DB_USER", "rfiduser"),
+        # password=os.environ.get("DB_PASSWORD", "rfidpass"),
+        # database=os.environ.get("DB_NAME", "rfid_db")
         host=os.environ.get("DB_HOST", "mysql"),
         user=os.environ.get("DB_USER", "rfiduser"),
         password=os.environ.get("DB_PASSWORD", "rfidpass"),

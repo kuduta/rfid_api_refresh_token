@@ -12,6 +12,18 @@
 
   <button id="logout" style="margin:20px;">Logout</button>
 
+    <div style="margin:20px;">
+    <label for="refreshSelect">🔁 Auto Refresh:</label>
+    <select id="refreshSelect">
+      <option value="0">None</option>
+      <option value="10">10 seconds</option>
+      <option value="30">30 seconds</option>
+      <option value="300">5 minutes</option>
+      <option value="600">10 minutes</option>
+    </select>
+  </div>
+
+
   <table id="rfidTable" class="display" style="width:90%; margin:20px;">
     <thead>
       <tr>
@@ -28,7 +40,6 @@
   </table>
 
   <script>
-    // อ่าน token จาก Local Storage
     const token = localStorage.getItem("access_token");
 
     if (!token) {
@@ -36,35 +47,59 @@
       window.location.href = "/login_page.html";
     }
 
+    let refreshInterval = 0;
+    let refreshTimer = null;
+
     $(document).ready(function() {
       const table = $('#rfidTable').DataTable();
 
-      // Load all data from API
-      $.ajax({
-        url: "/api/rfid-logs",
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + token
-        },
-        success: function(data) {
-          data.forEach(item => {
-            table.row.add([
-              item.id,
-              item.epc,
-              item.rssi,
-              item.ipaddress,
-              item.client,
-              item.timestamp
-            ]).draw(false);
-          });
-        },
-        error: function(err) {
-          alert("Unauthorized. Please login.");
-          window.location.href = "/login_page.html";
+      // โหลดข้อมูลรอบแรก
+      reloadTable();
+
+      $("#refreshSelect").change(function() {
+        const val = parseInt($(this).val());
+        refreshInterval = val;
+
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+          refreshTimer = null;
+        }
+
+        if (refreshInterval > 0) {
+          refreshTimer = setInterval(() => {
+            reloadTable();
+          }, refreshInterval * 1000);
         }
       });
 
-      // Listen for real-time event via socket.io
+      function reloadTable() {
+        $.ajax({
+          url: "/api/rfid-logs",
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + token
+          },
+          success: function(data) {
+            table.clear();
+            data.forEach(item => {
+              table.row.add([
+                item.id,
+                item.epc,
+                item.rssi,
+                item.ipaddress,
+                item.client,
+                item.timestamp
+              ]);
+            });
+            table.draw(false);
+          },
+          error: function(err) {
+            alert("Unauthorized. Please login.");
+            window.location.href = "/login_page.html";
+          }
+        });
+      }
+
       const socket = io({
         extraHeaders: {
           Authorization: "Bearer " + token
