@@ -13,7 +13,7 @@ services:
       - DB_NAME=rfid_db
       - JWT_SECRET=supersecretkey
     depends_on:
-      - db
+      - rfid_mysql
     volumes:
       - ./static:/app/static
       - ./users.db:/data/users.db
