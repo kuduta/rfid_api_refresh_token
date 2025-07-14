@@ -6,13 +6,17 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
   <h2 style="margin:20px;">RFID Dashboard (Protected)</h2>
 
-  <button id="logout" style="margin:20px;">Logout</button>
+  <div style="text-align: right; margin: 20px;">
+    <button id="goUsers" style="margin-left:10px;">User Management</button>
+    <button id="logout" style="margin-left:10px;">Logout</button>
+  </div>
 
-    <div style="margin:20px;">
+  <div style="margin:20px;">
     <label for="refreshSelect">🔁 Auto Refresh:</label>
     <select id="refreshSelect">
       <option value="0">None</option>
@@ -23,7 +27,6 @@
       <option value="600">10 minutes</option>
     </select>
   </div>
-
 
   <table id="rfidTable" class="display" style="width:90%; margin:20px;">
     <thead>
@@ -36,8 +39,7 @@
         <th>Timestamp</th>
       </tr>
     </thead>
-    <tbody>
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <script>
@@ -48,13 +50,22 @@
       window.location.href = "/login_page.html";
     }
 
+    // Bind Logout button OUTSIDE of document.ready
+    $("#logout").on("click", function() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/login_page.html";
+    });
+
+    $("#goUsers").click(function() {
+      window.location.href = "/users.html";
+    });
+
     let refreshInterval = 0;
     let refreshTimer = null;
 
     $(document).ready(function() {
       const table = $('#rfidTable').DataTable();
 
-      // โหลดข้อมูลรอบแรก
       reloadTable();
 
       $("#refreshSelect").change(function() {
@@ -116,11 +127,6 @@
           data.client,
           new Date().toLocaleString()
         ]).draw(false);
-      });
-
-      $("#logout").click(function(){
-        localStorage.removeItem("access_token");
-        window.location.href = "/login_page.html";
       });
     });
   </script>

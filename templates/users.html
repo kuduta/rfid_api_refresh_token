@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Management</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <style>
+    #userModal {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 35%;
+      width: 30%;
+      background: #f2f2f2;
+      border: 1px solid #999;
+      padding: 20px;
+      box-shadow: 0 0 10px #333;
+      z-index: 9999;
+    }
+    #userModal input {
+      width: 95%;
+      padding: 8px;
+      margin: 5px 0;
+    }
+    #userModal button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="margin:20px;">User Management (Admin Only)</h2>
+
+  <div style="display: flex; justify-content: space-between; margin: 20px;">
+    <div>
+      <button id="goDashboard" style="margin-right:10px;">⬅ Go Dashboard</button>
+    </div>
+    <div>
+      <button id="btnAddUser" style="margin-left:10px;">➕ Add User</button>
+      <button id="logout" style="margin-left:10px;">Logout</button>
+    </div>
+  </div>
+
+  <table id="usersTable" class="display" style="width:90%; margin:20px;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Modal -->
+  <div id="userModal">
+    <h3 id="modalTitle"></h3>
+    <input type="text" id="username" placeholder="Username" /><br/>
+    <input type="password" id="password" placeholder="Password" /><br/>
+    <button id="saveUser">Save</button>
+    <button id="closeModal">Close</button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("Login required!");
+      window.location.href = "/login_page.html";
+    }
+
+    let editingUser = null;
+
+    $(document).ready(function(){
+      const table = $('#usersTable').DataTable();
+
+      loadUsers();
+
+      $("#btnAddUser").click(function(){
+        editingUser = null;
+        $("#modalTitle").text("Add New User");
+        $("#username").val("").prop("readonly", false);
+        $("#password").val("");
+        $("#userModal").show();
+      });
+
+      $("#saveUser").click(function(){
+        const username = $("#username").val();
+        const password = $("#password").val();
+
+        if (!username || !password) {
+          alert("Please fill all fields!");
+          return;
+        }
+
+        if (editingUser) {
+          $.ajax({
+            url: `/api/users/${username}`,
+            method: "PUT",
+            headers: {
+              Authorization: "Bearer " + token
+            },
+            contentType: "application/json",
+            data: JSON.stringify({ password }),
+            success: function(){
+              alert("Password updated!");
+              $("#userModal").hide();
+              loadUsers();
+            },
+            error: function(err) {
+              alert("Error: " + (err.responseJSON?.msg || err.statusText));
+            }
+          });
+        } else {
+          $.ajax({
+            url: "/api/users",
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + token
+            },
+            contentType: "application/json",
+            data: JSON.stringify({ username, password }),
+            success: function(){
+              alert("User created!");
+              $("#userModal").hide();
+              loadUsers();
+            },
+            error: function(err) {
+              alert("Error: " + (err.responseJSON?.msg || err.statusText));
+            }
+          });
+        }
+      });
+
+      $("#closeModal").click(function(){
+        $("#userModal").hide();
+      });
+
+      $("#logout").click(function(){
+        localStorage.removeItem("access_token");
+        window.location.href = "/login_page.html";
+      });
+
+      $("#goDashboard").click(function(){
+        window.location.href = "/dashboard";
+      });
+
+      function loadUsers(){
+        $.ajax({
+          url: "/api/users",
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + token
+          },
+          success: function(data){
+            table.clear();
+            data.forEach(user => {
+              table.row.add([
+                user.id,
+                user.username,
+                `<button class='editBtn' data-username='${user.username}'>Edit</button>
+                 <button class='deleteBtn' data-username='${user.username}'>Delete</button>`
+              ]);
+            });
+            table.draw();
+
+            $(".editBtn").click(function(){
+              const uname = $(this).data("username");
+              editingUser = uname;
+              $("#modalTitle").text(`Edit Password for ${uname}`);
+              $("#username").val(uname).prop("readonly", true);
+              $("#password").val("");
+              $("#userModal").show();
+            });
+
+            $(".deleteBtn").click(function(){
+              const uname = $(this).data("username");
+              if (confirm(`Delete user ${uname}?`)) {
+                $.ajax({
+                  url: `/api/users/${uname}`,
+                  method: "DELETE",
+                  headers: {
+                    Authorization: "Bearer " + token
+                  },
+                  success: function(){
+                    alert("User deleted!");
+                    loadUsers();
+                  },
+                  error: function(err) {
+                    alert("Error: " + (err.responseJSON?.msg || err.statusText));
+                  }
+                });
+              }
+            });
+          },
+          error: function(err) {
+            alert("Unauthorized or forbidden.");
+            window.location.href = "/login_page.html";
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

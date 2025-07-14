@@ -107,15 +107,80 @@ def rfid():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
+
 
 @app.route("/login_page.html")
 def login_page():
     return render_template("login_page.html")
 
-    
+@app.route("/dashboard")
+def dashboard():
+    return render_template("dashboard.html")
+
+@app.route("/api/users", methods=["GET"])
+@jwt_required()
+def list_users():
+    conn = get_sqlite_conn()
+    rows = conn.execute("SELECT id, username FROM users").fetchall()
+    conn.close()
+    users = [dict(row) for row in rows]
+    return jsonify(users)
+
+@app.route("/api/users", methods=["POST"])
+@jwt_required()
+def add_user():
+    identity = get_jwt_identity()
+    if identity != "admin":
+        return jsonify({"msg": "Not authorized"}), 403
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    conn = get_sqlite_conn()
+    conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"msg": "User created"})
+
+@app.route("/api/users/<username>", methods=["PUT"])
+@jwt_required()
+def update_password(username):
+    identity = get_jwt_identity()
+    if identity != "admin":
+        return jsonify({"msg": "Not authorized"}), 403
+    data = request.get_json()
+    new_password = data.get("password")
+
+    conn = get_sqlite_conn()
+    conn.execute("UPDATE users SET password = ? WHERE username = ?", (new_password, username))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"msg": "Password updated"})
+
+
+@app.route("/api/users/<username>", methods=["DELETE"])
+@jwt_required()
+def delete_user(username):
+    identity = get_jwt_identity()
+    if identity != "admin":
+        return jsonify({"msg": "Not authorized"}), 403
+    conn = get_sqlite_conn()
+    conn.execute("DELETE FROM users WHERE username = ?", (username,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"msg": "User deleted"})
+
+@app.route("/users.html")
+#@jwt_required()
+def users_page():
+ #   identity = get_jwt_identity()
+ #   if identity != "admin":
+ #       return jsonify({"msg": "Not authorized"}), 403
+    return render_template("users.html")
+
 @app.route("/swagger.json")
 def swagger_spec():
     return send_file("swagger.json", mimetype="application/json")

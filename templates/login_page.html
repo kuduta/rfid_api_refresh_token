@@ -21,8 +21,8 @@
         method: "POST",
         contentType: "application/json",
         data: JSON.stringify({
-          username: username,
-          password: password
+          username: $("#username").val(),
+          password: $("#password").val()
         }),
         success: function(result) {
           localStorage.setItem("access_token", result.access_token);

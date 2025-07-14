@@ -1,20 +1,15 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.0",
   "info": {
-    "title": "RFID API",
+    "title": "RFID API Server",
     "version": "1.0.0",
-    "description": "API for RFID system with JWT authentication and real-time dashboard."
+    "description": "API for RFID Reader integration with JWT Auth and User Management"
   },
-  "servers": [
-    {
-      "url": "http://localhost:5000"
-    }
-  ],
   "paths": {
     "/login": {
       "post": {
-        "summary": "Login",
-        "description": "Login with username and password to receive JWT tokens.",
+        "summary": "User Login",
+        "description": "Authenticate user and get JWT tokens.",
         "requestBody": {
           "required": true,
           "content": {
@@ -22,12 +17,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "username": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
                 },
                 "required": ["username", "password"]
               }
@@ -55,18 +46,17 @@
         }
       }
     },
+
     "/refresh": {
       "post": {
-        "summary": "Refresh JWT Token",
-        "description": "Refresh access token using a valid refresh token.",
+        "summary": "Refresh Access Token",
+        "description": "Refresh access token using refresh token.",
         "security": [
-          {
-            "bearerAuth": []
-          }
+          { "bearerAuth": [] }
         ],
         "responses": {
           "200": {
-            "description": "New access token issued",
+            "description": "New access token",
             "content": {
               "application/json": {
                 "schema": {
@@ -77,21 +67,17 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Invalid or expired refresh token"
           }
         }
       }
     },
+
     "/api/rfid": {
       "post": {
-        "summary": "Submit RFID Data",
-        "description": "Post new RFID data to the server.",
+        "summary": "Send RFID Data",
+        "description": "Submit RFID EPC and RSSI data from reader.",
         "security": [
-          {
-            "bearerAuth": []
-          }
+          { "bearerAuth": [] }
         ],
         "requestBody": {
           "required": true,
@@ -112,7 +98,7 @@
         },
         "responses": {
           "200": {
-            "description": "Data successfully stored",
+            "description": "Data received",
             "content": {
               "application/json": {
                 "schema": {
@@ -123,28 +109,21 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "500": {
-            "description": "Server error"
           }
         }
       }
     },
+
     "/api/rfid-logs": {
       "get": {
-        "summary": "Get all RFID logs",
-        "description": "Returns list of RFID log records from MySQL.",
+        "summary": "Get RFID Logs",
+        "description": "Retrieve list of RFID scan logs.",
         "security": [
-          {
-            "bearerAuth": []
-          }
+          { "bearerAuth": [] }
         ],
         "responses": {
           "200": {
-            "description": "List of RFID logs",
+            "description": "List of logs",
             "content": {
               "application/json": {
                 "schema": {
@@ -163,14 +142,161 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+
+    "/api/users": {
+      "get": {
+        "summary": "List Users",
+        "description": "Get list of all users.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "username": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "post": {
+        "summary": "Add New User",
+        "description": "Create a new user.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                },
+                "required": ["username", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/api/users/{username}": {
+      "put": {
+        "summary": "Update User Password",
+        "description": "Change password for a user.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": { "type": "string" }
+                },
+                "required": ["password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+
+      "delete": {
+        "summary": "Delete User",
+        "description": "Delete a user by username.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": { "type": "string" }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
   },
+
   "components": {
     "securitySchemes": {
       "bearerAuth": {
