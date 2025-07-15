@@ -3,13 +3,13 @@
   "info": {
     "title": "RFID API Server",
     "version": "1.0.0",
-    "description": "API for RFID Reader integration with JWT Auth and User Management"
+    "description": "API for RFID Logging System with JWT Auth and User Management"
   },
   "paths": {
     "/login": {
       "post": {
-        "summary": "User Login",
-        "description": "Authenticate user and get JWT tokens.",
+        "summary": "Login",
+        "description": "Authenticate and get JWT tokens",
         "requestBody": {
           "required": true,
           "content": {
@@ -27,7 +27,7 @@
         },
         "responses": {
           "200": {
-            "description": "Login successful",
+            "description": "Tokens returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -46,17 +46,18 @@
         }
       }
     },
-
     "/refresh": {
       "post": {
-        "summary": "Refresh Access Token",
-        "description": "Refresh access token using refresh token.",
+        "summary": "Refresh JWT token",
+        "description": "Get new access token from refresh token",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
-            "description": "New access token",
+            "description": "New token",
             "content": {
               "application/json": {
                 "schema": {
@@ -71,13 +72,14 @@
         }
       }
     },
-
     "/api/rfid": {
       "post": {
-        "summary": "Send RFID Data",
-        "description": "Submit RFID EPC and RSSI data from reader.",
+        "summary": "Send RFID data",
+        "description": "Client posts RFID reads",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
@@ -113,17 +115,18 @@
         }
       }
     },
-
     "/api/rfid-logs": {
       "get": {
-        "summary": "Get RFID Logs",
-        "description": "Retrieve list of RFID scan logs.",
+        "summary": "Get RFID logs",
+        "description": "Return RFID logs",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
-            "description": "List of logs",
+            "description": "Array of RFID log entries",
             "content": {
               "application/json": {
                 "schema": {
@@ -146,17 +149,17 @@
         }
       }
     },
-
     "/api/users": {
       "get": {
-        "summary": "List Users",
-        "description": "Get list of all users.",
+        "summary": "List all users",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
-            "description": "List of users",
+            "description": "Array of users",
             "content": {
               "application/json": {
                 "schema": {
@@ -174,12 +177,12 @@
           }
         }
       },
-
       "post": {
-        "summary": "Add New User",
-        "description": "Create a new user.",
+        "summary": "Create new user",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
@@ -213,22 +216,20 @@
         }
       }
     },
-
     "/api/users/{username}": {
       "put": {
-        "summary": "Update User Password",
-        "description": "Change password for a user.",
+        "summary": "Update user password",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "parameters": [
           {
             "name": "username",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "requestBody": {
@@ -247,46 +248,54 @@
         },
         "responses": {
           "200": {
-            "description": "Password updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": { "type": "string" }
-                  }
-                }
-              }
-            }
+            "description": "Password updated"
           }
         }
       },
-
       "delete": {
-        "summary": "Delete User",
-        "description": "Delete a user by username.",
+        "summary": "Delete user",
         "security": [
-          { "bearerAuth": [] }
+          {
+            "bearerAuth": []
+          }
         ],
         "parameters": [
           {
             "name": "username",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
           "200": {
-            "description": "User deleted",
+            "description": "User deleted"
+          }
+        }
+      }
+    },
+    "/api/clients_status": {
+      "get": {
+        "summary": "Get client node statuses",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of clients and last_seen times",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "msg": { "type": "string" }
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "client": { "type": "string" },
+                      "ipaddress": { "type": "string" },
+                      "last_seen": { "type": "string", "format": "date-time" }
+                    }
                   }
                 }
               }
@@ -296,7 +305,6 @@
       }
     }
   },
-
   "components": {
     "securitySchemes": {
       "bearerAuth": {
