@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask import render_template
 from flask import send_file
+from flask import jsonify
 import mysql.connector
 import sqlite3
 import os
@@ -89,24 +90,34 @@ def rfid():
     try:
         conn = get_mysql_conn()
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO rfid_log (epc, rssi, ipaddress, client) VALUES (%s, %s, %s, %s)",
-            (epc, rssi, ip, client)
-        )
+
+        cursor.execute("""
+            INSERT INTO rfid_log (epc, rssi, ipaddress, client)
+            VALUES (%s, %s, %s, %s)
+        """, (epc, rssi, ip, client))
+
+        cursor.execute("""
+            INSERT INTO client_status (client_name, ipaddress, last_seen)
+            VALUES (%s, %s, NOW())
+            ON DUPLICATE KEY UPDATE last_seen = NOW(), ipaddress = VALUES(ipaddress)
+        """, (client, ip))
+
         conn.commit()
         cursor.close()
         conn.close()
+
         socketio.emit("new_rfid", {
             "epc": epc,
             "rssi": rssi,
             "ipaddress": ip,
             "client": client
         })
+
         return jsonify({"msg": "Data received"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 
 
 @app.route("/login_page.html")
@@ -180,6 +191,27 @@ def users_page():
  #   if identity != "admin":
  #       return jsonify({"msg": "Not authorized"}), 403
     return render_template("users.html")
+
+
+@app.route("/api/clients_status", methods=["GET"])
+@jwt_required()
+def clients_status():
+    try:
+        conn = get_mysql_conn()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT client_name AS client, ipaddress, last_seen
+            FROM client_status
+        """)
+        rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        return jsonify(rows), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 @app.route("/swagger.json")
 def swagger_spec():

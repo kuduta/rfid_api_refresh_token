@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Device Status</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <style>
+    .online {
+      color: green;
+      font-weight: bold;
+    }
+    .offline {
+      color: gray;
+      font-weight: bold;
+    }
+    .btn-remote {
+      background-color: #eee;
+      border: 1px solid #ccc;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="margin:20px;">Device Status</h2>
+
+  <table id="deviceTable" class="display" style="width:90%; margin:20px;">
+    <thead>
+      <tr>
+        <th>Node Name</th>
+        <th>IP Address</th>
+        <th>Last Seen</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      alert("You must login first!");
+      window.location.href = "/login_page.html";
+    }
+
+    // Node Name + IP Address ตายตัว
+    const allNodes = [
+      { name: "raspberrypi01", ip: "172.31.16.1" },
+      { name: "raspberrypi02", ip: "172.31.16.17" },
+      { name: "raspberrypi03", ip: "172.31.16.19" },
+      { name: "raspberrypi04", ip: "172.31.16.2" },
+      { name: "raspberrypi05", ip: "172.31.16.23" },
+      { name: "raspberrypi06", ip: "172.31.16.3" },
+      { name: "raspberrypi07", ip: "172.31.16.21" },
+      { name: "raspberrypi08", ip: "172.31.16.25" },
+      { name: "raspberrypi09", ip: "172.31.16.4" }
+    ];
+
+    $(document).ready(function(){
+      const table = $('#deviceTable').DataTable();
+
+      loadStatus();
+
+      setInterval(loadStatus, 10000); // refresh ทุก 10 วิ
+
+      function loadStatus(){
+        $.ajax({
+          url: "/api/clients_status",
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + token
+          },
+          success: function(data){
+            table.clear();
+
+            // API ส่ง last_seen เช่น:
+            // [{client: "raspberrypi01", last_seen: "2025-07-14T12:00:00"}]
+            const map = {};
+            data.forEach(d => {
+              map[d.client] = d;
+            });
+
+            allNodes.forEach(node => {
+              let statusText = "<span class='offline'>Offline</span>";
+              let lastSeenText = "-";
+
+              if (map[node.name]) {
+                const lastSeen = new Date(map[node.name].last_seen);
+                const now = new Date();
+                const diffSec = (now - lastSeen) / 1000;
+
+                if (diffSec < 120) {
+                  statusText = "<span class='online'>Online</span>";
+                  lastSeenText = lastSeen.toLocaleString();
+                } else {
+                  statusText = "<span class='offline'>" + timeSince(lastSeen) + " ago</span>";
+                  lastSeenText = lastSeen.toLocaleString();
+                }
+              }
+
+              table.row.add([
+                `<a href="#">${node.name}</a>`,
+                node.ip,
+                lastSeenText,
+                statusText,
+                `<button class='btn-remote' data-node='${node.name}'>Remote shell</button>`
+              ]);
+            });
+
+            table.draw();
+
+            $(".btn-remote").click(function(){
+              const node = $(this).data("node");
+              alert("Remote shell to " + node + " (TODO)");
+            });
+          },
+          error: function(err){
+            alert("Error loading client status");
+          }
+        });
+      }
+
+      function timeSince(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = Math.floor(seconds / 31536000);
+        if (interval >= 1) return interval + " years";
+        interval = Math.floor(seconds / 2592000);
+        if (interval >= 1) return interval + " months";
+        interval = Math.floor(seconds / 86400);
+        if (interval >= 1) return interval + " days";
+        interval = Math.floor(seconds / 3600);
+        if (interval >= 1) return interval + " hours";
+        interval = Math.floor(seconds / 60);
+        if (interval >= 1) return interval + " minutes";
+        return Math.floor(seconds) + " seconds";
+      }
+    });
+  </script>
+</body>
+</html>
