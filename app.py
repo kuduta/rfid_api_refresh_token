@@ -41,7 +41,7 @@ def get_mysql_conn():
     )
 
 ALL_CLIENTS = [
-    {"client": "raspberrypi01", "ipaddress": "192.168.1.138"},
+    {"client": "raspberrypi01", "ipaddress": "192.168.1.1"},
     {"client": "raspberrypi02", "ipaddress": "172.31.16.17"},
     {"client": "raspberrypi03", "ipaddress": "172.31.16.19"},
     {"client": "raspberrypi04", "ipaddress": "192.168.1.128"},
@@ -50,6 +50,7 @@ ALL_CLIENTS = [
     {"client": "raspberrypi07", "ipaddress": "172.31.16.21"},
     {"client": "raspberrypi08", "ipaddress": "172.31.16.25"},
     {"client": "raspberrypi09", "ipaddress": "172.31.16.4"},
+    {"client": "rpitest", "ipaddress": "192.168.1.138"},
 ]
 
 
