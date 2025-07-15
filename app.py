@@ -195,21 +195,8 @@ def users_page():
 
 @app.route("/clients_status.html", methods=["GET"])
 @jwt_required()
-def clients_status():
-    try:
-        conn = get_mysql_conn()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
-            SELECT client_name AS client, ipaddress, last_seen
-            FROM client_status
-        """)
-        rows = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
-        return jsonify(rows), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+def clients_status_page():
+    return render_template("clients_status.html")
 
 
 
