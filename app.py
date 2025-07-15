@@ -193,7 +193,7 @@ def users_page():
     return render_template("users.html")
 
 
-@app.route("/api/clients_status.html", methods=["GET"])
+@app.route("/clients_status.html", methods=["GET"])
 @jwt_required()
 def clients_status():
     try:
