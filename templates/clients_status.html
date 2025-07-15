@@ -47,75 +47,37 @@
     <tbody></tbody>
   </table>
 
-  <script>
-    // ตรวจว่ามี token ใน localStorage หรือยัง
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Please login first!");
-      window.location.href = "/login_page.html";
-    }
+ <script>
+  const token = localStorage.getItem("access_token");
 
-    let refreshInterval = 0;
-    let refreshTimer = null;
+  if (!token) {
+    alert("You must login first!");
+    window.location.href = "/login_page.html";
+  }
 
-    $(document).ready(function () {
-      const table = $('#clientsTable').DataTable();
+  $(document).ready(function(){
+    loadClients();
 
-      loadClients();
-
-      $("#refreshSelect").change(function () {
-        const val = parseInt($(this).val());
-        refreshInterval = val;
-
-        if (refreshTimer) {
-          clearInterval(refreshTimer);
-          refreshTimer = null;
-        }
-
-        if (refreshInterval > 0) {
-          refreshTimer = setInterval(() => {
-            loadClients();
-          }, refreshInterval * 1000);
+    function loadClients() {
+      $.ajax({
+        url: "/api/clients_status",
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token
+        },
+        success: function(data) {
+          console.log(data);
+          // ใส่ code แสดงผล data ลงตารางที่นี่
+        },
+        error: function(err) {
+          console.log(err);
+          alert(err.responseJSON?.msg || "Error loading client status. Please login again.");
+          window.location.href = "/login_page.html";
         }
       });
-
-      $("#btnBack").click(function () {
-        window.location.href = "/dashboard";
-      });
-
-function loadClients() {
-  $.ajax({
-    url: "/api/clients_status",
-    method: "GET",
-    headers: {
-      Authorization: "Bearer " + token
-    },
-    success: function (data) {
-      table.clear();
-      data.forEach(client => {
-        const lastSeen = client.last_seen;
-        const statusIcon = (lastSeen && lastSeen !== "Never") 
-            ? "<span class='status-icon status-online'>&#9679;</span> Online"
-            : "<span class='status-icon status-offline'>&#9679;</span> Offline";
-
-        table.row.add([
-          client.client,
-          client.ipaddress,
-          lastSeen,
-          statusIcon
-        ]);
-      });
-      table.draw(false);
-    },
-    error: function (err) {
-      console.log(err);
-      alert(err.responseJSON?.msg || "Error loading client status. Please login again.");
-      window.location.href = "/login_page.html";
     }
   });
-}
+</script>
 
-    });
-  </script>
 </body>
 </html>
