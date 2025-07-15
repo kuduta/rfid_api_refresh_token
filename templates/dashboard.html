@@ -48,7 +48,7 @@
 
     if (!token) {
       alert("You must login first!");
-      window.location.href = "/login_page.html";
+      window.location.href = "/login";
     }
 
     // Bind Logout button OUTSIDE of document.ready
@@ -62,7 +62,7 @@
 
     $("#logout").click(function(){
       localStorage.removeItem("access_token");
-      window.location.href = "/login_page.html";
+      window.location.href = "/login";
     });
 
 
@@ -113,7 +113,7 @@
           },
           error: function(err) {
             alert("Unauthorized. Please login.");
-            window.location.href = "/login_page.html";
+            window.location.href = "/login";
           }
         });
       }

@@ -66,7 +66,7 @@
     const token = localStorage.getItem("access_token");
     if (!token) {
       alert("Login required!");
-      window.location.href = "/login_page.html";
+      window.location.href = "/login";
     }
 
     let editingUser = null;
@@ -138,7 +138,7 @@
 
       $("#logout").click(function(){
         localStorage.removeItem("access_token");
-        window.location.href = "/login_page.html";
+        window.location.href = "/login";
       });
 
       $("#goDashboard").click(function(){
@@ -195,7 +195,7 @@
           },
           error: function(err) {
             alert("Unauthorized or forbidden.");
-            window.location.href = "/login_page.html";
+            window.location.href = "/login";
           }
         });
       }
