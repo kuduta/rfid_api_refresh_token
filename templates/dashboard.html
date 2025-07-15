@@ -70,7 +70,11 @@
     let refreshTimer = null;
 
     $(document).ready(function() {
-      const table = $('#rfidTable').DataTable();
+      // const table = $('#rfidTable').DataTable();
+      const table = $('#rfidTable').DataTable({
+        order: [[0, 'desc']]    // เรียง Timestamp จากใหม่ → เก่า
+      });
+
 
       reloadTable();
 
