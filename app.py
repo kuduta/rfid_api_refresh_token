@@ -132,7 +132,7 @@ def rfid():
 
 
 
-@app.route("/login_page.html")
+@app.route("/login")
 def login_page():
     return render_template("login_page.html")
 
