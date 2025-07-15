@@ -3,86 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <title>Client Status</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <style>
-    .status-icon {
-      font-size: 18px;
-    }
-    .status-online {
-      color: green;
-    }
-    .status-offline {
-      color: red;
-    }
-  </style>
 </head>
 <body>
-  <h2 style="margin: 20px;">Client Status</h2>
+  <h2 style="margin:20px;">Client Status</h2>
 
-  <div style="margin: 20px;">
-    <button id="btnBack" style="margin-right: 10px;">← Back to Dashboard</button>
+  <div style="text-align:right; margin: 20px;">
+    <button id="backDashboard" style="margin-left:10px;">← Back to Dashboard</button>
+    <button id="logout" style="margin-left:10px;">Logout</button>
+  </div>
 
+  <div style="margin:20px;">
     <label for="refreshSelect">🔁 Auto Refresh:</label>
     <select id="refreshSelect">
-      <option value="0">None</option>
       <option value="5">5 seconds</option>
       <option value="10">10 seconds</option>
       <option value="30">30 seconds</option>
       <option value="300">5 minutes</option>
-      <option value="600">10 minutes</option>
+      <option value="0">None</option>
     </select>
   </div>
 
-  <table id="clientsTable" class="display" style="width: 90%; margin: 20px;">
+  <table id="clientsTable" class="display" style="width:90%; margin:20px;">
     <thead>
       <tr>
         <th>Client</th>
         <th>IP Address</th>
         <th>Last Seen</th>
-        <th>Status</th>
+        <th>Network Online</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+    </tbody>
   </table>
 
   <script>
-    // ตรวจ JWT token
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert("Please login first!");
-      window.location.href = "/login";
+      alert("Login required!");
+      window.location.href = "/login_page.html";
     }
 
-    let refreshInterval = 0;
+    $("#logout").click(function(){
+      localStorage.removeItem("access_token");
+      window.location.href = "/login_page.html";
+    });
+
+    $("#backDashboard").click(function(){
+      window.location.href = "/dashboard";
+    });
+
     let refreshTimer = null;
+    let refreshInterval = 5;
 
-    $(document).ready(function () {
-      const table = $("#clientsTable").DataTable();
+    $(document).ready(function(){
+      const table = $('#clientsTable').DataTable();
 
-      // โหลดข้อมูลครั้งแรก
       loadClients();
 
-      // Handle Back Button
-      $("#btnBack").click(function () {
-        window.location.href = "/dashboard";
-      });
-
-      // Handle Refresh Dropdown
-      $("#refreshSelect").change(function () {
-        const val = parseInt($(this).val());
-        refreshInterval = val;
+      $("#refreshSelect").val("5"); // default
+      $("#refreshSelect").change(function(){
+        const interval = parseInt($(this).val());
+        refreshInterval = interval;
 
         if (refreshTimer) {
           clearInterval(refreshTimer);
           refreshTimer = null;
         }
 
-        if (refreshInterval > 0) {
+        if (interval > 0) {
           refreshTimer = setInterval(() => {
             loadClients();
-          }, refreshInterval * 1000);
+          }, interval * 1000);
         }
       });
 
@@ -91,36 +85,28 @@
           url: "/api/clients_status",
           method: "GET",
           headers: {
-            Authorization: "Bearer " + token,
+            Authorization: "Bearer " + token
           },
-          success: function (data) {
+          success: function(data){
             table.clear();
-
-            data.forEach((client) => {
-              const lastSeen = client.last_seen;
-              const statusIcon =
-                lastSeen && lastSeen !== "Never"
-                  ? "<span class='status-icon status-online'>&#9679;</span> Online"
-                  : "<span class='status-icon status-offline'>&#9679;</span> Offline";
+            data.forEach(item => {
+              const color = item.network_online
+                ? `<span style="color: green; font-weight:bold;">● ONLINE</span>`
+                : `<span style="color: red; font-weight:bold;">● OFFLINE</span>`;
 
               table.row.add([
-                client.client,
-                client.ipaddress,
-                lastSeen,
-                statusIcon,
+                item.client,
+                item.ipaddress,
+                item.last_seen,
+                color
               ]);
             });
-
-            table.draw(false);
+            table.draw();
           },
-          error: function (err) {
-            console.log(err);
-            alert(
-              err.responseJSON?.msg ||
-                "Error loading client status. Please login again."
-            );
-            window.location.href = "/login";
-          },
+          error: function(err){
+            alert("Unauthorized or session expired.");
+            window.location.href = "/login_page.html";
+          }
         });
       }
     });
