@@ -44,12 +44,12 @@
     const token = localStorage.getItem("access_token");
     if (!token) {
       alert("Login required!");
-      window.location.href = "/login_page.html";
+      window.location.href = "/login";
     }
 
     $("#logout").click(function(){
       localStorage.removeItem("access_token");
-      window.location.href = "/login_page.html";
+      window.location.href = "/login";
     });
 
     $("#backDashboard").click(function(){
@@ -106,7 +106,7 @@
           },
           error: function(err){
             alert("Unauthorized or session expired.");
-            window.location.href = "/login_page.html";
+            window.location.href = "/login";
           }
         });
       }
