@@ -245,7 +245,7 @@ def clients_status():
 
 
 @app.route("/clients_status.html")
-@jwt_required()
+#@jwt_required()
 def clients_status_page():
     return render_template("clients_status.html")
 
