@@ -193,17 +193,15 @@ def users_page():
     return render_template("users.html")
 
 
-@app.route("/clients_status.html", methods=["GET"])
-@jwt_required()
-def clients_status_page():
-    return render_template("clients_status.html")
-
-
-
 @app.route("/swagger.json")
 def swagger_spec():
     return send_file("swagger.json", mimetype="application/json")
 
+@app.route("/clients_status.html")
+@jwt_required()
+def clients_status_page():
+    return render_template("clients_status.html")
+
 if __name__ == "__main__":
-    #app.run(host="0.0.0.0", port=5000)
     socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+
