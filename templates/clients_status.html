@@ -6,41 +6,79 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <style>
+    .status-icon {
+      font-size: 1.5em;
+    }
+    .online {
+      color: green;
+    }
+    .offline {
+      color: red;
+    }
+    .top-controls {
+      margin: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2 style="margin:20px;">Client Status (Protected)</h2>
+  <h2 style="margin:20px;">Client Status</h2>
 
-  <div style="text-align:right; margin: 20px;">
-    <button id="btnBack" style="margin-left:10px;">⬅ Back to Dashboard</button>
-    <button id="logout" style="margin-left:10px;">Logout</button>
+  <div class="top-controls">
+    <button id="btnBack">⬅ Back to Dashboard</button>
+    <label style="margin-left: 20px;">🔁 Auto Refresh:</label>
+    <select id="refreshSelect" style="margin-left: 10px;">
+      <option value="0">None</option>
+      <option value="5">5 seconds</option>
+      <option value="10">10 seconds</option>
+      <option value="30">30 seconds</option>
+      <option value="60">1 minute</option>
+    </select>
   </div>
 
-  <table id="clientsTable" class="display" style="width:90%; margin:20px;">
+  <table id="clientTable" class="display" style="width:90%; margin:20px;">
     <thead>
       <tr>
         <th>Client</th>
         <th>IP Address</th>
         <th>Last Seen</th>
+        <th>Status</th>
       </tr>
     </thead>
-    <tbody>
-    </tbody>
+    <tbody></tbody>
   </table>
 
   <script>
     const token = localStorage.getItem("access_token");
-
     if (!token) {
-      alert("Please login first!");
+      alert("Login required!");
       window.location.href = "/login_page.html";
     }
 
+    $("#btnBack").click(function(){
+      window.location.href = "/dashboard";
+    });
+
+    let refreshInterval = 0;
+    let refreshTimer = null;
+
     $(document).ready(function(){
-      const table = $("#clientsTable").DataTable();
+      const table = $("#clientTable").DataTable();
 
-      loadClients();
+      loadStatus();
 
-      function loadClients(){
+      $("#refreshSelect").change(function(){
+        refreshInterval = parseInt($(this).val());
+        if (refreshTimer) {
+          clearInterval(refreshTimer);
+          refreshTimer = null;
+        }
+        if (refreshInterval > 0) {
+          refreshTimer = setInterval(loadStatus, refreshInterval * 1000);
+        }
+      });
+
+      function loadStatus(){
         $.ajax({
           url: "/api/clients_status",
           method: "GET",
@@ -50,30 +88,37 @@
           success: function(data){
             table.clear();
             data.forEach(item => {
+              const lastSeen = item.last_seen;
+              let statusIcon = '<span class="status-icon offline">🔴</span>';
+              let rowClass = "offline";
+
+              if (lastSeen !== "Never") {
+                const now = new Date();
+                const seenDate = new Date(lastSeen.replace(" ", "T"));
+                const diffMs = now - seenDate;
+                const diffMin = diffMs / 60000;
+
+                if (diffMin < 1) {
+                  statusIcon = '<span class="status-icon online">🟢</span>';
+                  rowClass = "online";
+                }
+              }
+
               table.row.add([
                 item.client,
                 item.ipaddress,
-                item.last_seen
+                item.last_seen,
+                statusIcon
               ]);
             });
-            table.draw();
+            table.draw(false);
           },
           error: function(err){
-            alert("Unauthorized or session expired!");
-            localStorage.removeItem("access_token");
+            alert("Error loading client status. Please login again.");
             window.location.href = "/login_page.html";
           }
         });
       }
-
-      $("#logout").click(function(){
-        localStorage.removeItem("access_token");
-        window.location.href = "/login_page.html";
-      });
-
-      $("#btnBack").click(function(){
-        window.location.href = "/dashboard";
-      });
     });
   </script>
 </body>

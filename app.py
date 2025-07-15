@@ -7,7 +7,6 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask import render_template
 from flask import send_file
-from flask import jsonify
 import mysql.connector
 import sqlite3
 import os
