@@ -245,19 +245,16 @@ def clients_status():
 
             row = db_map.get(c_name)
 
-            # result.append({
-            #     "client": c_name,
-            #     "ipaddress": ip,
-            #     "last_seen": row["last_seen"] if row else "Never",
-            #     "network_online": network_ok
-            # })
+            last_seen_str = "Never"
+            if row and row["last_seen"]:
+                last_seen_str = row["last_seen"].strftime("%Y-%m-%d %H:%M:%S")
+
             result.append({
                 "client": c_name,
-                "ipaddress": client["ipaddress"],
-                "last_seen": row["last_seen"].strftime("%Y-%m-%d %H:%M:%S") if row and row["last_seen"] else "Never",
-                "network_online": row.get("network_online", False) if row else False
-})
-
+                "ipaddress": ip,
+                "last_seen": last_seen_str,
+                "network_online": network_ok
+            })
 
         return jsonify(result), 200
 
