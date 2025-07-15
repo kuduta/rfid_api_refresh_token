@@ -40,6 +40,19 @@ def get_mysql_conn():
         database=os.environ.get("DB_NAME", "rfid_db")
     )
 
+ALL_CLIENTS = [
+    {"client": "raspberrypi01", "ipaddress": "172.31.16.1"},
+    {"client": "raspberrypi02", "ipaddress": "172.31.16.17"},
+    {"client": "raspberrypi03", "ipaddress": "172.31.16.19"},
+    {"client": "raspberrypi04", "ipaddress": "172.31.16.2"},
+    {"client": "raspberrypi05", "ipaddress": "172.31.16.23"},
+    {"client": "raspberrypi06", "ipaddress": "172.31.16.3"},
+    {"client": "raspberrypi07", "ipaddress": "172.31.16.21"},
+    {"client": "raspberrypi08", "ipaddress": "172.31.16.25"},
+    {"client": "raspberrypi09", "ipaddress": "172.31.16.4"},
+]
+
+
 @app.route("/login", methods=["POST"])
 def login():
     try:
@@ -197,8 +210,43 @@ def users_page():
 def swagger_spec():
     return send_file("swagger.json", mimetype="application/json")
 
-@app.route("/clients_status.html")
+@app.route("/api/clients_status", methods=["GET"])
 @jwt_required()
+def clients_status():
+    try:
+        # อ่านข้อมูลล่าสุดใน DB
+        conn = get_mysql_conn()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT client_name AS client, ipaddress, last_seen
+            FROM client_status
+        """)
+        db_rows = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        # แปลงเป็น dict {client_name: row}
+        db_map = { row["client"]: row for row in db_rows }
+
+        # รวมข้อมูล ALL_CLIENTS กับ DB
+        result = []
+        for client in ALL_CLIENTS:
+            c_name = client["client"]
+            row = db_map.get(c_name)
+            result.append({
+                "client": c_name,
+                "ipaddress": client["ipaddress"],
+                "last_seen": row["last_seen"] if row else "Never"
+            })
+
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/clients_status.html")
+#@jwt_required()
 def clients_status_page():
     return render_template("clients_status.html")
 

@@ -29,8 +29,9 @@
 
   <script>
     const token = localStorage.getItem("access_token");
+
     if (!token) {
-      alert("Login required!");
+      alert("Please login first!");
       window.location.href = "/login_page.html";
     }
 
@@ -59,6 +60,7 @@
           },
           error: function(err){
             alert("Unauthorized or session expired!");
+            localStorage.removeItem("access_token");
             window.location.href = "/login_page.html";
           }
         });
