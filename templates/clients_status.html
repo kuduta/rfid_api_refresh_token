@@ -83,39 +83,38 @@
         window.location.href = "/dashboard";
       });
 
-      function loadClients() {
-        $.ajax({
-          url: "/api/clients_status",
-          method: "GET",
-          headers: {
-            Authorization: "Bearer " + token
-          },
-          success: function (data) {
-            table.clear();
+function loadClients() {
+  $.ajax({
+    url: "/api/clients_status",
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + token
+    },
+    success: function (data) {
+      table.clear();
+      data.forEach(client => {
+        const lastSeen = client.last_seen;
+        const statusIcon = (lastSeen && lastSeen !== "Never") 
+            ? "<span class='status-icon status-online'>&#9679;</span> Online"
+            : "<span class='status-icon status-offline'>&#9679;</span> Offline";
 
-            data.forEach(client => {
-              const lastSeen = client.last_seen;
-              const statusIcon = (lastSeen && lastSeen !== "Never") 
-                  ? "<span class='status-icon status-online'>&#9679;</span> Online"
-                  : "<span class='status-icon status-offline'>&#9679;</span> Offline";
+        table.row.add([
+          client.client,
+          client.ipaddress,
+          lastSeen,
+          statusIcon
+        ]);
+      });
+      table.draw(false);
+    },
+    error: function (err) {
+      console.log(err);
+      alert(err.responseJSON?.msg || "Error loading client status. Please login again.");
+      window.location.href = "/login_page.html";
+    }
+  });
+}
 
-              table.row.add([
-                client.client,
-                client.ipaddress,
-                lastSeen,
-                statusIcon
-              ]);
-            });
-
-            table.draw(false);
-          },
-          error: function (err) {
-            console.log(err);
-            alert(err.responseJSON?.msg || "Error loading client status. Please login again.");
-            window.location.href = "/login_page.html";
-          }
-        });
-      }
     });
   </script>
 </body>
