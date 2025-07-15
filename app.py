@@ -244,12 +244,20 @@ def clients_status():
             network_ok = ping_host(ip)
 
             row = db_map.get(c_name)
+
+            # result.append({
+            #     "client": c_name,
+            #     "ipaddress": ip,
+            #     "last_seen": row["last_seen"] if row else "Never",
+            #     "network_online": network_ok
+            # })
             result.append({
                 "client": c_name,
-                "ipaddress": ip,
-                "last_seen": row["last_seen"] if row else "Never",
-                "network_online": network_ok
-            })
+                "ipaddress": client["ipaddress"],
+                "last_seen": row["last_seen"].strftime("%Y-%m-%d %H:%M:%S") if row and row["last_seen"] else "Never",
+                "network_online": row.get("network_online", False) if row else False
+})
+
 
         return jsonify(result), 200
 
