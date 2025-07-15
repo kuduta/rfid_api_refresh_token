@@ -9,6 +9,7 @@ from flask import render_template
 from flask import send_file
 import mysql.connector
 import sqlite3
+from ping3 import ping
 import os
 from datetime import timedelta
 
@@ -209,11 +210,19 @@ def users_page():
 def swagger_spec():
     return send_file("swagger.json", mimetype="application/json")
 
+
+
+def ping_host(ip):
+    try:
+        result = ping(ip, timeout=1)
+        return result is not None
+    except Exception:
+        return False
+
 @app.route("/api/clients_status", methods=["GET"])
 @jwt_required()
 def clients_status():
     try:
-        # อ่านข้อมูลล่าสุดใน DB
         conn = get_mysql_conn()
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
@@ -224,25 +233,29 @@ def clients_status():
         cursor.close()
         conn.close()
 
-        print("[DEBUG] clients_status rows:", db_rows)
-        # แปลงเป็น dict {client_name: row}
         db_map = { row["client"]: row for row in db_rows }
 
-        # รวมข้อมูล ALL_CLIENTS กับ DB
         result = []
         for client in ALL_CLIENTS:
             c_name = client["client"]
+            ip = client["ipaddress"]
+
+            # ตรวจ ICMP
+            network_ok = ping_host(ip)
+
             row = db_map.get(c_name)
             result.append({
                 "client": c_name,
-                "ipaddress": client["ipaddress"],
-                "last_seen": row["last_seen"] if row else "Never"
+                "ipaddress": ip,
+                "last_seen": row["last_seen"] if row else "Never",
+                "network_online": network_ok
             })
 
         return jsonify(result), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/clients_status.html")
