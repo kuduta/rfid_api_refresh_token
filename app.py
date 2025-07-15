@@ -224,6 +224,7 @@ def clients_status():
         cursor.close()
         conn.close()
 
+        print("[DEBUG] clients_status rows:", db_rows)
         # แปลงเป็น dict {client_name: row}
         db_map = { row["client"]: row for row in db_rows }
 

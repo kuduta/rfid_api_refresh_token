@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS rfid_log (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE client_status (
-    client_name VARCHAR(50) PRIMARY KEY,
-    ipaddress VARCHAR(50),
-    last_seen DATETIME
+CREATE TABLE IF NOT EXISTS client_status (
+  client_name VARCHAR(50) PRIMARY KEY,
+  ipaddress VARCHAR(50),
+  last_seen DATETIME
 );
