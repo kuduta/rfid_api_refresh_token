@@ -11,10 +11,11 @@
 <body>
   <h2 style="margin:20px;">RFID Dashboard (Protected)</h2>
 
-  <div style="text-align: right; margin: 20px;">
-    <button id="goUsers" style="margin-left:10px;">User Management</button>
-    <button id="logout" style="margin-left:10px;">Logout</button>
-  </div>
+ <div style="text-align: right; margin: 20px;">
+  <button id="goClients" style="margin-left:10px;">Client Status</button>
+  <button id="goUsers" style="margin-left:10px;">User Management</button>
+  <button id="logout" style="margin-left:10px;">Logout</button>
+</div>
 
   <div style="margin:20px;">
     <label for="refreshSelect">🔁 Auto Refresh:</label>
@@ -51,14 +52,19 @@
     }
 
     // Bind Logout button OUTSIDE of document.ready
-    $("#logout").on("click", function() {
+    $("#goUsers").click(function(){
+      window.location.href = "/users.html";
+    });
+
+    $("#goClients").click(function(){
+      window.location.href = "/clients_status.html";
+    });
+
+    $("#logout").click(function(){
       localStorage.removeItem("access_token");
       window.location.href = "/login_page.html";
     });
 
-    $("#goUsers").click(function() {
-      window.location.href = "/users.html";
-    });
 
     let refreshInterval = 0;
     let refreshTimer = null;
