@@ -110,7 +110,7 @@ def rfid():
         """, (epc, rssi, ip, client))
 
         cursor.execute("""
-            INSERT INTO client_status (client_name, ipaddress, last_seen)
+            INSERT INTO rfid_client_status (client_name, ipaddress, last_seen)
             VALUES (%s, %s, NOW())
             ON DUPLICATE KEY UPDATE last_seen = NOW(), ipaddress = VALUES(ipaddress)
         """, (client, ip))
@@ -227,7 +227,7 @@ def clients_status():
         cursor = conn.cursor(dictionary=True)
         cursor.execute("""
             SELECT client_name AS client, ipaddress, last_seen
-            FROM client_status
+            FROM rfid_client_status
         """)
         db_rows = cursor.fetchall()
         cursor.close()
