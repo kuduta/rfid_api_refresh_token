@@ -6,3 +6,4 @@ eventlet
 mysql-connector-python==9.1.0
 python-dotenv==1.0.1
 ping3
+XXX
